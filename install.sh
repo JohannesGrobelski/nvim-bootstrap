@@ -19,9 +19,9 @@ if ! command -v nvim &>/dev/null || ! version_ge "$installed_version" "$required
     echo "⚙️ Installing latest Neovim (current: $installed_version)..."
 
     # Download and extract latest nvim
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-    tar xzf nvim-linux64.tar.gz
-    sudo mv nvim-linux64 /opt/nvim
+    curl -LO https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-arm64.tar.gz
+    tar xzf tar xzf nvim-linux-arm64.tar.gz
+    sudo mv nvim-linux-arm64/ /opt/nvim
     sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
     rm nvim-linux64.tar.gz
 
