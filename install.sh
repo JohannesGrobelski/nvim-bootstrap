@@ -7,30 +7,41 @@ REPO_URL="https://github.com/JohannesGrobelski/nvim-bootstrap"
 echo "🚀 Bootstrapping Neovim with branch: '$BRANCH'"
 
 # 1. Install Neovim if not present (Debian/Ubuntu)
-# 1.2. Check Neovim version
-required_version="0.8.1"
-installed_version=$(nvim --version 2>/dev/null | head -n1 | awk '{print $2}' || echo "0.0.0")
 
-version_ge() {
-    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
-}
+#!/bin/bash
+set -e
 
-if ! command -v nvim &>/dev/null || ! version_ge "$installed_version" "$required_version"; then
-    echo "⚙️ Installing latest Neovim (current: $installed_version)..."
+NVIM_MIN_VERSION="0.8.0"
 
-    # Download and extract latest nvim
-    curl -LO https://github.com/neovim/neovim/releases/download/v0.11.2/nvim-linux-arm64.tar.gz
-    tar xzf tar xzf nvim-linux-arm64.tar.gz
-    sudo mv nvim-linux-arm64/ /opt/nvim
-    sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
-    rm nvim-linux64.tar.gz
-
-    echo "✅ Neovim installed: $(nvim --version | head -n1)"
+# Prüfen, ob nvim vorhanden ist
+if command -v nvim >/dev/null 2>&1; then
+  # Version auslesen, z.B. "NVIM v0.6.1"
+  NVIM_VERSION=$(nvim --version | head -n1 | awk '{print $2}' | tr -d 'v')
+  # Vergleich der Versionen
+  if printf '%s\n%s\n' "$NVIM_MIN_VERSION" "$NVIM_VERSION" | sort -V -C; then
+    echo "✅ Neovim ist installiert und Version >= $NVIM_MIN_VERSION ($NVIM_VERSION)"
+  else
+    echo "⚠️ Neovim Version ($NVIM_VERSION) ist < $NVIM_MIN_VERSION, neu installieren..."
+    INSTALL_NVIM=1
+  fi
 else
-    echo "✅ Neovim $installed_version is sufficient"
+  echo "❌ Neovim nicht installiert, Installation startet..."
+  INSTALL_NVIM=1
 fi
 
-# 1.2. Backup existing Neovim config (optional but recommended)
+if [ "$INSTALL_NVIM" == "1" ]; then
+  NVIM_VERSION_TO_INSTALL="v0.11.2"
+  ARCH="linux64" # ggf. anpassen
+  echo "⬇️ Lade Neovim $NVIM_VERSION_TO_INSTALL herunter..."
+  curl -L -o nvim.tar.gz "https://github.com/neovim/neovim/releases/download/$NVIM_VERSION_TO_INSTALL/nvim-$ARCH.tar.gz"
+  tar xzf nvim.tar.gz
+  sudo mv nvim-$ARCH /opt/nvim
+  sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
+  rm nvim.tar.gz
+fi
+
+# Weiter mit restlicher Installation, z.B. Config klonen etc.
+# 2. Backup existing Neovim config (optional but recommended)
 echo "📁 Backing up existing Neovim config..."
 timestamp=$(date +%s)
 [ -d ~/.config/nvim ] && mv ~/.config/nvim ~/.config/nvim.bak.$timestamp
