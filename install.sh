@@ -7,14 +7,30 @@ REPO_URL="https://github.com/JohannesGrobelski/nvim-bootstrap"
 echo "🚀 Bootstrapping Neovim with branch: '$BRANCH'"
 
 # 1. Install Neovim if not present (Debian/Ubuntu)
-if ! command -v nvim &> /dev/null; then
-    echo "📦 Installing Neovim..."
-    sudo apt update && sudo apt install -y neovim git curl
+# 1.2. Check Neovim version
+required_version="0.8.1"
+installed_version=$(nvim --version 2>/dev/null | head -n1 | awk '{print $2}' || echo "0.0.0")
+
+version_ge() {
+    [ "$(printf '%s\n' "$1" "$2" | sort -V | head -n1)" = "$2" ]
+}
+
+if ! command -v nvim &>/dev/null || ! version_ge "$installed_version" "$required_version"; then
+    echo "⚙️ Installing latest Neovim (current: $installed_version)..."
+
+    # Download and extract latest nvim
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
+    tar xzf nvim-linux64.tar.gz
+    sudo mv nvim-linux64 /opt/nvim
+    sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
+    rm nvim-linux64.tar.gz
+
+    echo "✅ Neovim installed: $(nvim --version | head -n1)"
 else
-    echo "✅ Neovim is already installed."
+    echo "✅ Neovim $installed_version is sufficient"
 fi
 
-# 2. Backup existing Neovim config (optional but recommended)
+# 1.2. Backup existing Neovim config (optional but recommended)
 echo "📁 Backing up existing Neovim config..."
 timestamp=$(date +%s)
 [ -d ~/.config/nvim ] && mv ~/.config/nvim ~/.config/nvim.bak.$timestamp
